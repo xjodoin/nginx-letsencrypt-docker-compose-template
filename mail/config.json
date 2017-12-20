@@ -1,0 +1,14 @@
+{
+  "settings": {
+    "myhostname": "mail.jodoin.me"
+  },
+  "domains": {
+    "jodoin.me": [
+      {
+        "email": "xavier@jodoin.me",
+	"password": "{SHA512-CRYPT}$6$MXYUDjt5jhEx23AV$6/q.yc7nkAyNYrENX.BKVcTbiqu3UQ9ohkiZGOtMWq/8S9fzfmPGvxVw/WDRVSGiYTJ/9353dVHojsCFF9WJj.",
+  "aliases": ["@jodoin.me"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,82 @@
+version: '3'
+services:
+  nginx:
+    image: nginx
+    labels:
+        com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - nginx-files-conf:/etc/nginx/conf.d
+      - nginx-files-vhost:/etc/nginx/vhost.d
+      - nginx-files-html:/usr/share/nginx/html
+      - nginx-files-certs:/etc/nginx/certs:ro
+    environment:
+      DEFAULT_HOST: "xavier.jodoin.me"
+  nginx-gen:
+    image: jwilder/docker-gen
+    command: -notify-sighup nginx -watch -wait 5s:30s /etc/docker-gen/templates/nginx.tmpl /etc/nginx/conf.d/default.conf
+    container_name: nginx-gen
+    restart: unless-stopped
+    volumes:
+      - nginx-files-conf:/etc/nginx/conf.d
+      - nginx-files-vhost:/etc/nginx/vhost.d
+      - nginx-files-html:/usr/share/nginx/html
+      - nginx-files-certs:/etc/nginx/certs:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - ./nginx.tmpl:/etc/docker-gen/templates/nginx.tmpl:ro
+
+  nginx-letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: nginx-letsencrypt
+    restart: unless-stopped
+    volumes:
+      - nginx-files-conf:/etc/nginx/conf.d
+      - nginx-files-vhost:/etc/nginx/vhost.d
+      - nginx-files-html:/usr/share/nginx/html
+      - nginx-files-certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      NGINX_DOCKER_GEN_CONTAINER: "nginx-gen"
+      NGINX_PROXY_CONTAINER: "nginx"
+  xavier-website:
+    image: xjodoin/xavier
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: "xavier.jodoin.me"
+      LETSENCRYPT_HOST: "xavier.jodoin.me"
+      LETSENCRYPT_EMAIL: "xavier@jodoin.me"
+#mail server
+  core:
+    image: xjodoin/dockermail_core
+    restart: unless-stopped
+    ports:
+      - "25:25"
+      - "143:143"
+      - "587:587"
+    volumes:
+      - mail-settings:/mail_settings
+      - mail:/vmail
+    environment:
+      OPEN_DKIM: "true"
+      AMAVIS: "true"
+  opendkim:
+    image: xjodoin/dockermail_opendkim
+    restart: unless-stopped
+    volumes:
+      - mail-settings:/mail_settings
+  amavis:
+    image: xjodoin/dockermail_amavis
+    restart: unless-stopped
+    volumes:
+      - mail-settings:/mail_settings
+volumes:
+  nginx-files-conf:
+  nginx-files-vhost:
+  nginx-files-html:
+  nginx-files-certs:
+  mail-settings:
+  mail:
