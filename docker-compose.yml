@@ -49,34 +49,8 @@ services:
       VIRTUAL_HOST: "xavier.jodoin.me"
       LETSENCRYPT_HOST: "xavier.jodoin.me"
       LETSENCRYPT_EMAIL: "xavier@jodoin.me"
-#mail server
-  core:
-    image: xjodoin/dockermail_core
-    restart: unless-stopped
-    ports:
-      - "25:25"
-      - "143:143"
-      - "587:587"
-    volumes:
-      - mail-settings:/mail_settings
-      - mail:/vmail
-    environment:
-      OPEN_DKIM: "true"
-      AMAVIS: "true"
-  opendkim:
-    image: xjodoin/dockermail_opendkim
-    restart: unless-stopped
-    volumes:
-      - mail-settings:/mail_settings
-  amavis:
-    image: xjodoin/dockermail_amavis
-    restart: unless-stopped
-    volumes:
-      - mail-settings:/mail_settings
 volumes:
   nginx-files-conf:
   nginx-files-vhost:
   nginx-files-html:
   nginx-files-certs:
-  mail-settings:
-  mail:
